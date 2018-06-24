@@ -9,6 +9,13 @@ namespace Alura.ListaLeitura.App
 {
     public class Startup
     {
+        private LivroRepositorioCSV _repo;
+
+        public Startup()
+        {
+            _repo = new LivroRepositorioCSV();
+        }
+
         // TODO: Criar Configure's de acordo com as variáveis de ambiente
         // https://docs.microsoft.com/pt-br/aspnet/core/fundamentals/environments?view=aspnetcore-2.1
         // Recebe uma instancia de IApplicationBuilder via Injeção de dependência
@@ -27,18 +34,18 @@ namespace Alura.ListaLeitura.App
         // Um método do tipo Task funciona de forma assíncrona
         public Task Routing(HttpContext context)
         {
-            var _repo = new LivroRepositorioCSV();
-
-            var routes = new Dictionary<string, string>
+            // Request delegate: Tipo de método que sabe processar uma requisição HTTP
+            var routes = new Dictionary<string, RequestDelegate>
             {
-                { "/Livros/ParaLer", _repo.ParaLer.ToString() },
-                { "/Livros/Lendo", _repo.Lendo.ToString() },
-                { "/Livros/Lidos", _repo.Lidos.ToString() }
+                { "/Livros/ParaLer", LivrosParaLer },
+                { "/Livros/Lendo", LivrosLendo },
+                { "/Livros/Lidos", LivrosLidos }
             };
 
             if (routes.ContainsKey(context.Request.Path))
             {
-                return context.Response.WriteAsync(routes[context.Request.Path]);
+                // Executa um request delegate sob um determinado contexto http
+                return routes[context.Request.Path].Invoke(context);
             }
             else
             {
@@ -46,6 +53,21 @@ namespace Alura.ListaLeitura.App
                 context.Response.StatusCode = StatusCodes.Status404NotFound;
                 return context.Response.WriteAsync("Rota inexistente");
             }
+        }
+
+        public Task LivrosParaLer(HttpContext context)
+        {
+            return context.Response.WriteAsync(_repo.ParaLer.ToString());
+        }
+
+        public Task LivrosLendo(HttpContext context)
+        {
+            return context.Response.WriteAsync(_repo.Lendo.ToString());
+        }
+
+        public Task LivrosLidos(HttpContext context)
+        {
+            return context.Response.WriteAsync(_repo.Lidos.ToString());
         }
     }
 }
