@@ -1,5 +1,6 @@
 ﻿using Alura.ListaLeitura.App.Repositorio;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 
@@ -7,11 +8,16 @@ namespace Alura.ListaLeitura.App
 {
     public class Startup
     {
-        // Recebe uma instancia de IApplicationBuilder via Injeção de dependência
         // TODO: Criar Configure's de acordo com as variáveis de ambiente
         // https://docs.microsoft.com/pt-br/aspnet/core/fundamentals/environments?view=aspnetcore-2.1
-        public void Configure(IApplicationBuilder app)
+        // Recebe uma instancia de IApplicationBuilder via Injeção de dependência
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            if (env.IsDevelopment())
+            {
+                // Development only configuration.
+            }
+
             // Ao executar a aplicação, o método será executado e o usuário irá receber na tela
             // o resultado do método
             app.Run(LivrosParaLer);
