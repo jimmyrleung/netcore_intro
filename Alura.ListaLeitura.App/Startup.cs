@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -16,43 +18,33 @@ namespace Alura.ListaLeitura.App
             _repo = new LivroRepositorioCSV();
         }
 
-        // TODO: Criar Configure's de acordo com as variáveis de ambiente
-        // https://docs.microsoft.com/pt-br/aspnet/core/fundamentals/environments?view=aspnetcore-2.1
         // Recebe uma instancia de IApplicationBuilder via Injeção de dependência
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            // Criamos um RouteBuilder que irá gerar nosso roteamento
+            var routeBuilder = new RouteBuilder(app);
+
+            // Mapeamos as rotas e os RequestDelegates para cada rota
+            // Request delegate: Tipo de método que sabe processar uma requisição HTTP
+            routeBuilder.MapRoute("Livros/ParaLer", LivrosParaLer);
+            routeBuilder.MapRoute("Livros/Lendo", LivrosLendo);
+            routeBuilder.MapRoute("Livros/Lidos", LivrosLidos);
+            
+            // Construímos de fato o objeto responsável pelo roteamento
+            var routes = routeBuilder.Build();
+
+            // Solicitamos ao app que use nosso objeto de roteamento
+            app.UseRouter(routes);
+
             if (env.IsDevelopment())
             {
                 // Development only configuration.
             }
-
-            // Ao executar a aplicação, o método será executado e o usuário irá receber na tela
-            // o resultado do método
-            app.Run(Routing);
         }
 
-        // Um método do tipo Task funciona de forma assíncrona
-        public Task Routing(HttpContext context)
+        public void ConfigureServices(IServiceCollection services)
         {
-            // Request delegate: Tipo de método que sabe processar uma requisição HTTP
-            var routes = new Dictionary<string, RequestDelegate>
-            {
-                { "/Livros/ParaLer", LivrosParaLer },
-                { "/Livros/Lendo", LivrosLendo },
-                { "/Livros/Lidos", LivrosLidos }
-            };
-
-            if (routes.ContainsKey(context.Request.Path))
-            {
-                // Executa um request delegate sob um determinado contexto http
-                return routes[context.Request.Path].Invoke(context);
-            }
-            else
-            {
-                // Escreve o conteúdo de livros para ler na Response da requisição
-                context.Response.StatusCode = StatusCodes.Status404NotFound;
-                return context.Response.WriteAsync("Rota inexistente");
-            }
+            services.AddRouting();
         }
 
         public Task LivrosParaLer(HttpContext context)
