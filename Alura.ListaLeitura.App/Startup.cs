@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -36,6 +37,8 @@ namespace Alura.ListaLeitura.App
             routeBuilder.MapRoute("Livros/Lendo", LivrosLendo);
             routeBuilder.MapRoute("Livros/Lidos", LivrosLidos);
             routeBuilder.MapRoute("Livros/Cadastro/{nome}/{autor}", NovoLivroParaLer);
+            routeBuilder.MapRoute("Livros/Cadastro", ExibeFormulario);
+            routeBuilder.MapRoute("Livros/Cadastro/Incluir", IncluirLivro);
             routeBuilder.MapRoute("Livros/{id:int}", ExibeDetalhes);
 
             // Construímos de fato o objeto responsável pelo roteamento
@@ -57,6 +60,24 @@ namespace Alura.ListaLeitura.App
         #endregion ConfigureSection
 
         #region Tasks
+        private Task ExibeFormulario(HttpContext context)
+        {
+            var html = CarregaArquivoHtml("formLivro");
+            return context.Response.WriteAsync(html);
+        }
+
+        public Task IncluirLivro(HttpContext context)
+        {
+            var livro = new Livro()
+            {
+                Titulo = Convert.ToString(context.Request.Form["titulo"]),
+                Autor = Convert.ToString(context.Request.Form["autor"])
+            };
+
+            _repo.Incluir(livro);
+            return context.Response.WriteAsync("Livro incluído com sucesso.");
+        }
+
         private Task ExibeDetalhes(HttpContext context)
         {
             int id = Convert.ToInt32(context.GetRouteValue("id"));
@@ -80,18 +101,45 @@ namespace Alura.ListaLeitura.App
 
         public Task LivrosParaLer(HttpContext context)
         {
-            return context.Response.WriteAsync(_repo.ParaLer.ToString());
+            var html = CarregaArquivoHtml("listaLivros");
+            var listaLivros = "";
+            foreach (var livro in _repo.ParaLer.Livros)
+            {
+                listaLivros += $"<li>{livro.ToString()}</li>";
+            }
+            return context.Response.WriteAsync(html.Replace("{listaLivros}", listaLivros).Replace("{titulo}", _repo.ParaLer.Titulo));
         }
 
         public Task LivrosLendo(HttpContext context)
         {
-            return context.Response.WriteAsync(_repo.Lendo.ToString());
+            var html = CarregaArquivoHtml("listaLivros");
+            var listaLivros = "";
+            foreach (var livro in _repo.Lendo.Livros)
+            {
+                listaLivros += $"<li>{livro.ToString()}</li>";
+            }
+            return context.Response.WriteAsync(html.Replace("{listaLivros}", listaLivros).Replace("{titulo}", _repo.Lendo.Titulo));
         }
 
         public Task LivrosLidos(HttpContext context)
         {
-            return context.Response.WriteAsync(_repo.Lidos.ToString());
+            var html = CarregaArquivoHtml("listaLivros");
+            var listaLivros = "";
+            foreach (var livro in _repo.Lidos.Livros)
+            {
+                listaLivros += $"<li>{livro.ToString()}</li>";
+            }
+            return context.Response.WriteAsync(html.Replace("{listaLivros}", listaLivros).Replace("{titulo}", _repo.Lidos.Titulo));
         }
         #endregion Tasks
+
+        private string CarregaArquivoHtml(string nomeArquivo)
+        {
+            string nomeCompleto = $"../../../HTML/{nomeArquivo}.html";
+            using (var arquivo = File.OpenText(nomeCompleto))
+            {
+                return arquivo.ReadToEnd();
+            }
+        }
     }
 }
