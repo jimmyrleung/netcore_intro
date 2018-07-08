@@ -16,11 +16,11 @@ namespace Alura.ListaLeitura.App
     public class Startup
     {
         #region Constructor
-        private LivroRepositorioCSV _repo;
+        private LivroController _livroController;
 
         public Startup()
         {
-            _repo = new LivroRepositorioCSV();
+            this._livroController = new LivroController();
         }
         #endregion
         
@@ -33,13 +33,13 @@ namespace Alura.ListaLeitura.App
 
             // Mapeamos as rotas e os RequestDelegates para cada rota
             // Request delegate: Tipo de método que sabe processar uma requisição HTTP
-            routeBuilder.MapRoute("Livros/ParaLer", LivrosParaLer);
-            routeBuilder.MapRoute("Livros/Lendo", LivrosLendo);
-            routeBuilder.MapRoute("Livros/Lidos", LivrosLidos);
-            routeBuilder.MapRoute("Livros/Cadastro/{nome}/{autor}", NovoLivroParaLer);
-            routeBuilder.MapRoute("Livros/Cadastro", ExibeFormulario);
-            routeBuilder.MapRoute("Livros/Cadastro/Incluir", IncluirLivro);
-            routeBuilder.MapRoute("Livros/{id:int}", ExibeDetalhes);
+            routeBuilder.MapRoute("Livros/ParaLer", _livroController.LivrosParaLer);
+            routeBuilder.MapRoute("Livros/Lendo", _livroController.LivrosLendo);
+            routeBuilder.MapRoute("Livros/Lidos", _livroController.LivrosLidos);
+            routeBuilder.MapRoute("Livros/Cadastro/{nome}/{autor}", _livroController.NovoLivroParaLer);
+            routeBuilder.MapRoute("Livros/Cadastro", _livroController.ExibeFormulario);
+            routeBuilder.MapRoute("Livros/Cadastro/Incluir", _livroController.IncluirLivro);
+            routeBuilder.MapRoute("Livros/{id:int}", _livroController.ExibeDetalhes);
 
             // Construímos de fato o objeto responsável pelo roteamento
             var routes = routeBuilder.Build();
@@ -58,88 +58,5 @@ namespace Alura.ListaLeitura.App
             services.AddRouting();
         }
         #endregion ConfigureSection
-
-        #region Tasks
-        private Task ExibeFormulario(HttpContext context)
-        {
-            var html = CarregaArquivoHtml("formLivro");
-            return context.Response.WriteAsync(html);
-        }
-
-        public Task IncluirLivro(HttpContext context)
-        {
-            var livro = new Livro()
-            {
-                Titulo = Convert.ToString(context.Request.Form["titulo"]),
-                Autor = Convert.ToString(context.Request.Form["autor"])
-            };
-
-            _repo.Incluir(livro);
-            return context.Response.WriteAsync("Livro incluído com sucesso.");
-        }
-
-        private Task ExibeDetalhes(HttpContext context)
-        {
-            int id = Convert.ToInt32(context.GetRouteValue("id"));
-            var livro = _repo.Todos.First(l => l.Id == id);
-            return context.Response.WriteAsync(livro.Detalhes());
-        }
-
-        public Task NovoLivroParaLer(HttpContext context)
-        {
-            // Como a rota que acessa essa RequestDelegate é uma "Template Route", ou seja, que tem
-            // um padrão definido, podemos acessar esses valores através do método "GetRouteValue"
-            var livro = new Livro()
-            {
-                Titulo = Convert.ToString(context.GetRouteValue("nome")),
-                Autor = Convert.ToString(context.GetRouteValue("autor"))
-            };
-
-            _repo.Incluir(livro);
-            return context.Response.WriteAsync("Livro incluído com sucesso.");
-        }
-
-        public Task LivrosParaLer(HttpContext context)
-        {
-            var html = CarregaArquivoHtml("listaLivros");
-            var listaLivros = "";
-            foreach (var livro in _repo.ParaLer.Livros)
-            {
-                listaLivros += $"<li>{livro.ToString()}</li>";
-            }
-            return context.Response.WriteAsync(html.Replace("{listaLivros}", listaLivros).Replace("{titulo}", _repo.ParaLer.Titulo));
-        }
-
-        public Task LivrosLendo(HttpContext context)
-        {
-            var html = CarregaArquivoHtml("listaLivros");
-            var listaLivros = "";
-            foreach (var livro in _repo.Lendo.Livros)
-            {
-                listaLivros += $"<li>{livro.ToString()}</li>";
-            }
-            return context.Response.WriteAsync(html.Replace("{listaLivros}", listaLivros).Replace("{titulo}", _repo.Lendo.Titulo));
-        }
-
-        public Task LivrosLidos(HttpContext context)
-        {
-            var html = CarregaArquivoHtml("listaLivros");
-            var listaLivros = "";
-            foreach (var livro in _repo.Lidos.Livros)
-            {
-                listaLivros += $"<li>{livro.ToString()}</li>";
-            }
-            return context.Response.WriteAsync(html.Replace("{listaLivros}", listaLivros).Replace("{titulo}", _repo.Lidos.Titulo));
-        }
-        #endregion Tasks
-
-        private string CarregaArquivoHtml(string nomeArquivo)
-        {
-            string nomeCompleto = $"../../../HTML/{nomeArquivo}.html";
-            using (var arquivo = File.OpenText(nomeCompleto))
-            {
-                return arquivo.ReadToEnd();
-            }
-        }
     }
 }
