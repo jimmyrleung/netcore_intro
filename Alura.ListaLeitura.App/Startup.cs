@@ -33,12 +33,12 @@ namespace Alura.ListaLeitura.App
 
             // Mapeamos as rotas e os RequestDelegates para cada rota
             // Request delegate: Tipo de método que sabe processar uma requisição HTTP
-            routeBuilder.MapRoute("Livros/ParaLer", _livroController.LivrosParaLer);
-            routeBuilder.MapRoute("Livros/Lendo", _livroController.LivrosLendo);
-            routeBuilder.MapRoute("Livros/Lidos", _livroController.LivrosLidos);
+            routeBuilder.MapRoute("Livros/ParaLer", _livroController.ParaLer);
+            routeBuilder.MapRoute("Livros/Lendo", _livroController.Lendo);
+            routeBuilder.MapRoute("Livros/Lidos", _livroController.Lidos);
             routeBuilder.MapRoute("Livros/Cadastro/{nome}/{autor}", _livroController.NovoLivroParaLer);
             routeBuilder.MapRoute("Livros/Cadastro", _livroController.ExibeFormulario);
-            routeBuilder.MapRoute("Livros/Cadastro/Incluir", _livroController.IncluirLivro);
+            routeBuilder.MapRoute("Livros/Cadastro/Incluir", _livroController.Incluir);
             routeBuilder.MapRoute("Livros/{id:int}", _livroController.ExibeDetalhes);
 
             // Construímos de fato o objeto responsável pelo roteamento
