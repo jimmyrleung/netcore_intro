@@ -28,24 +28,9 @@ namespace Alura.ListaLeitura.App
         // Recebe uma instancia de IApplicationBuilder via Injeção de dependência
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            // Criamos um RouteBuilder que irá gerar nosso roteamento
-            var routeBuilder = new RouteBuilder(app);
-
-            // Mapeamos as rotas e os RequestDelegates para cada rota
-            // Request delegate: Tipo de método que sabe processar uma requisição HTTP
-            routeBuilder.MapRoute("Livros/ParaLer", _livroController.ParaLer);
-            routeBuilder.MapRoute("Livros/Lendo", _livroController.Lendo);
-            routeBuilder.MapRoute("Livros/Lidos", _livroController.Lidos);
-            routeBuilder.MapRoute("Livros/Cadastro/{nome}/{autor}", _livroController.NovoLivroParaLer);
-            routeBuilder.MapRoute("Livros/Cadastro", _livroController.ExibeFormulario);
-            routeBuilder.MapRoute("Livros/Cadastro/Incluir", _livroController.Incluir);
-            routeBuilder.MapRoute("Livros/{id:int}", _livroController.ExibeDetalhes);
-
-            // Construímos de fato o objeto responsável pelo roteamento
-            var routes = routeBuilder.Build();
-
-            // Solicitamos ao app que use nosso objeto de roteamento
-            app.UseRouter(routes);
+            // Utilizar o MVC com o roteamento padrão
+            app.UseMvcWithDefaultRoute();
+            app.UseDeveloperExceptionPage(); // Deve ser utilizado somente em desenvolvimento
 
             if (env.IsDevelopment())
             {
@@ -55,7 +40,8 @@ namespace Alura.ListaLeitura.App
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddRouting();
+            //services.AddRouting();
+            services.AddMvc();
         }
         #endregion ConfigureSection
     }
